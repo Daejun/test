@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
-"""큐비즘 전시 견학 보고서 .docx 생성 스크립트"""
+"""큐비즘 전시 견학 보고서 .docx 생성 스크립트 (사진 삽입 포함)"""
+import os
 from docx import Document
-from docx.shared import Pt, RGBColor
+from docx.shared import Pt, RGBColor, Cm
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 FONT = "맑은 고딕"
+IMG = "report_images"
 
 doc = Document()
 
@@ -37,6 +39,30 @@ def heading(text, size=14, color=RGBColor(0x1F, 0x37, 0x64), space_before=12, sp
     r = p.add_run(text)
     set_korean_font(r, size=size, bold=True, color=color)
     return p
+
+
+_fignum = [0]
+
+
+def figure(filename, caption, width_cm=12):
+    """이미지 + 캡션(번호 자동)을 가운데 정렬로 삽입."""
+    _fignum[0] += 1
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(6)
+    p.paragraph_format.space_after = Pt(2)
+    p.add_run().add_picture(os.path.join(IMG, filename), width=Cm(width_cm))
+    c = doc.add_paragraph()
+    c.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    c.paragraph_format.space_after = Pt(8)
+    r = c.add_run(f"[사진 {_fignum[0]}] {caption}")
+    set_korean_font(r, size=9, color=RGBColor(0x66, 0x66, 0x66))
+    r.font.italic = True
+
+
+# 세로(인물) 8cm, 가로 12cm 기준
+def figure_p(filename, caption):
+    figure(filename, caption, width_cm=8)
 
 
 def body(text, size=10.5, bullet=False, indent=False):
@@ -93,26 +119,41 @@ rq = q.add_run("“큐비즘이 이전의 회화와 구별되는 지점은, 그�
                "이르고자 하는 개념(conceptual)의 예술이라는 점이다.” (《입체파 화가들》, 1913)")
 set_korean_font(rq, size=10.5)
 rq.font.italic = True
+figure_p("fig01_apollinaire.jpg", "전시 도입부 텍스트 월 ― 아폴리네르의 큐비즘 정의")
 body("즉 큐비즘은 '보이는 대로 재현'하는 미술에서 '대상을 분해해 하나의 메시지로 재구성'하는 미술로의 "
      "전환을 선언한 사조다. 이 '재현에서 개념으로'라는 관점이 보고서 전체의 키워드다.")
 
 heading("(2) 전시 구성과 대표 작품 (관람 동선 기준)", size=11.5, color=RGBColor(0x33, 0x33, 0x33), space_before=6)
-for txt in [
-    "큐비즘의 출발 ― 피카소 〈여인의 두상〉(1907) 등: 인체를 단순화·해체하기 시작한 초기 실험.",
-    "분석적 큐비즘 ― 회색·갈색 톤의 다면 분할 회화: 대상을 여러 시점에서 잘게 쪼개 화면에 재배열. "
-    "형태가 거의 추상에 가깝게 분해됨.",
-    "색채로의 확장(오르피즘) ― 소니아 들로네의 원형 색채 추상: 큐비즘의 형태 실험에 강렬한 색채와 "
-    "리듬을 결합. 전시에서 가장 시각적으로 강한 구간이자, 관람객의 발길이 가장 오래 머무는 '포토 스폿'.",
-    "큐비즘의 응용·확장 ― 조르주 야쿨로프 〈Bull〉, 대형 무대막 등: 회화를 넘어 무대·디자인으로 번진 "
-    "큐비즘의 영향력.",
-    "코리아 포커스: 모던 아방가르드를 향한 꿈의 지도 ― 김환기·유영국·박래현 등 한국 작가 11인, "
-    "작품 21점. 서구 아방가르드가 한국적 현실에서 어떻게 수용·변주됐는지 조명한 특별 섹션.",
-]:
-    body(txt, bullet=True)
+
+body("큐비즘의 출발 ― 피카소 〈여인의 두상〉(1907) 등: 인체를 단순화·해체하기 시작한 초기 실험.",
+     bullet=True)
+figure_p("fig02_picasso_bust.jpg", "파블로 피카소 〈여인의 두상(Bust of a Woman)〉, 1907")
+
+body("분석적 큐비즘 ― 회색·갈색 톤의 다면 분할 회화: 대상을 여러 시점에서 잘게 쪼개 화면에 재배열. "
+     "형태가 거의 추상에 가깝게 분해됨.", bullet=True)
+figure_p("fig03_head_of_woman.jpg", "피카소 〈여인 두상(Head of a Woman)〉 ― 분석적 큐비즘")
+figure_p("fig04_reclining_nude.jpg", "누워 있는 인물 ― 형태의 단순화·해체")
+figure("fig05_analytic.jpg", "다면 분할로 거의 추상에 이른 분석적 큐비즘 회화", width_cm=8)
+figure_p("fig06_large_cubist.jpg", "여러 인물·형태가 중첩된 대형 큐비즘 회화")
+figure("fig07_green_work.jpg", "점묘·패턴이 결합된 종합적 큐비즘 회화", width_cm=12)
+
+body("색채로의 확장(오르피즘) ― 소니아 들로네의 원형 색채 추상: 큐비즘의 형태 실험에 강렬한 색채와 "
+     "리듬을 결합. 전시에서 가장 시각적으로 강한 구간이자, 관람객의 발길이 가장 오래 머무는 '포토 스폿'.",
+     bullet=True)
+figure("fig08_delaunay_single.jpg", "소니아 들로네 ― 원형 색채 추상(오르피즘)", width_cm=11)
+figure("fig09_delaunay_wall.jpg", "들로네 작품의 전시 벽면 전경 ― 색채 구간 연출", width_cm=13)
+
+body("큐비즘의 응용·확장 ― 조르주 야쿨로프 〈Bull〉, 대형 무대막 등: 회화를 넘어 무대·디자인으로 번진 "
+     "큐비즘의 영향력.", bullet=True)
+figure("fig10_yakulov_bull.jpg", "조르주 야쿨로프 〈Bull〉", width_cm=13)
+
+body("코리아 포커스: 모던 아방가르드를 향한 꿈의 지도 ― 김환기·유영국·박래현 등 한국 작가 11인, "
+    "작품 21점. 서구 아방가르드가 한국적 현실에서 어떻게 수용·변주됐는지 조명한 특별 섹션.", bullet=True)
 
 heading("(3) 공간·건축", size=11.5, color=RGBColor(0x33, 0x33, 0x33), space_before=6)
 body("건축가 장 미셸 빌모트가 63빌딩 별관을 리모델링했다. 황금빛 본관과 대비되는 흰색 '빛의 상자' "
      "콘셉트로, 대형 작품을 아트리움 중앙에 배치해 압도적 첫인상을 연출한다.")
+figure("fig11_atrium.jpg", "아트리움 중앙의 대형 무대막 작품 ― '한 방' 공간 연출", width_cm=13)
 
 # ── 3. 시사점 ─────────────────────────────────────────
 heading("3. 관람을 통해 얻은 시사점 (핵심)")
@@ -162,17 +203,22 @@ for txt in [
     body(txt, bullet=True)
 
 # ── 5. 부록 ───────────────────────────────────────────
-heading("5. 부록 ― 현장 사진")
-for i, txt in enumerate([
-    "아폴리네르 인용문 (전시 도입부 텍스트 월)",
-    "피카소 〈여인의 두상〉(1907)",
-    "분석적 큐비즘 회화 (회색조 다면 분할) 외 3점",
-    "소니아 들로네 원형 색채 추상 (단독 / 전시 벽면 전경)",
-    "조르주 야쿨로프 〈Bull〉",
-    "아트리움 대형 무대막 작품 (공간 연출 전경)",
-], 1):
-    body(f"{i}. {txt}", indent=True)
-body("※ 사진 11장 별첨.")
+heading("5. 부록 ― 현장 사진 목록")
+body("현장 사진(총 11장)은 본문 각 항목에 삽입했으며, 도판 목록은 다음과 같다.")
+for txt in [
+    "사진 1: 전시 도입부 아폴리네르 인용문",
+    "사진 2: 피카소 〈여인의 두상〉(1907)",
+    "사진 3: 피카소 〈여인 두상(Head of a Woman)〉",
+    "사진 4: 누워 있는 인물 (분석적 큐비즘)",
+    "사진 5: 다면 분할 분석적 큐비즘 회화",
+    "사진 6: 인물·형태가 중첩된 대형 큐비즘 회화",
+    "사진 7: 점묘·패턴이 결합된 종합적 큐비즘 회화",
+    "사진 8: 소니아 들로네 원형 색채 추상 (단독)",
+    "사진 9: 들로네 작품 전시 벽면 전경",
+    "사진 10: 조르주 야쿨로프 〈Bull〉",
+    "사진 11: 아트리움 대형 무대막 (공간 연출 전경)",
+]:
+    body(txt, indent=True)
 
 # ── 참고 출처 ─────────────────────────────────────────
 heading("참고 출처", size=11.5, color=RGBColor(0x33, 0x33, 0x33))
